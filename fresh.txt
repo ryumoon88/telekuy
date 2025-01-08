@@ -1,0 +1,77 @@
+php artisan migrate:fresh
+php artisan make:filament-user --name Owner --email owner@example.com --password owner
+php artisan shield:install admin
+php artisan shield:super-admin
+php artisan db:seed
+php artisan db:seed SystemSeeder
+
+php artisan make:filament-resource  --soft-deletes --view -G
+
+LANDING PAGE, 
+-	contact support
+-	list produk
+-	order / menu order
+-	testimoni(gatau penting atau ngga)
+* 	SNK aggrement dll
+-	login register, forgot password
+
+CUSTOMER
+* 	order reff/akun/bot (bot ada yang sistem lisensi)
+* 	deposit (focus ke indo aja)
+* 	chat cs
+* 	ada level (reseller, biasa buat reseller ada setting persenan diskonya (just for order reff)
+*     reseller
+
+ADMIN
+* upload produk (refferal, akun tele(bisa beda beda negara), bot)
+* chat customer
+* tele (download, manage edit status dll, send to customer buy)
+* statisik order
+* total stok akun terjual dll
+* total komisi hasil jualan bisa di wd (nanti masuk notif lewat email ke owner) nnati owner tf manual, dan ubah status wd nya (ada riwayatnya)
+* [CHECK] bisa add orderan manual
+* setiap orderan masuk, maasuk ke email (smtp)
+
+
+OWNER
+-	[CHECK] manage akun (upload akun)
+-	[CHECK] manage user
+-	[CHECK] keuangan ( modal akun,  
+-     [CHECK] omset per akun yang dipake reff / jual akun , profit)
+-	batasin admin bisa ngambil berapa refferal per hari
+* 	limit orderan admin (for refferal)
+*   	[CHECK] bisa add orderan manual
+
+
+ada modal pembuatan dipotong harga jual reff untuk per akun, nanti dapet 1 akun sudah di pake refferal apa aja  dikruangin modal pembuatan akun
+untuk admin ada yang ngerjain nanti ada ttal
+admin ini udah ngerjain berapa refferal per hari ini, nanti ada komisinya 
+ 
+LANGUAGE = ENGLISH
+
+UI UX 
+
+USER
+Landing Page
+* Login/Register/ Forgot password (ada login customer, admin, owner atau dibuat 1 login aja terserah)
+* Contact Support
+* Testimoni (gatau ini penting atau ngga)
+* SNK/ Aggrement
+* Produk
+* Cart buy produk gitu->sampe selesai beli->terus bisa chat cs
+* Chat After buy gitu
+
+Produk
+* Refferal Airdrop (ada nominal refferal, tipe refferal aktif / biasa)
+* Bot Lisensi/non lisensi (nanti bisa milih durasi atau tanpa durasi) ada informasi mengenai botnya juga 
+* Akun Telegram (ada deskripsi tentang produknya atau cara pakainya)
+
+Deposit Saldo(pakai payment gateway yg ini) atau history saldo
+
+modal -> 3500
+
+1 ref -> 1300
+admin -> 300
+
+komisi -> ref - admin
+profit -> 
