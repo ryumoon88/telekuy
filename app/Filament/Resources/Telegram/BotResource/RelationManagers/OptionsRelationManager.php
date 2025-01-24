@@ -11,7 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use Illuminate\Support\Str;
 class OptionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'options';
@@ -26,18 +26,24 @@ class OptionsRelationManager extends RelationManager
                         ->default(1)
                         ->minValue(1)
                         ->numeric()
-                        ->formatStateUsing(fn($record) => $record->duration_num),
+                        ->formatStateUsing(fn($record) => $record?->duration_num),
                     Forms\Components\Select::make('duration_modifier')
                         ->hiddenLabel()
                         ->options(BotDurationOption::class)
-                        ->formatStateUsing(fn($record) => $record->duration_modifier),
+                        ->formatStateUsing(fn($record) => $record?->duration_modifier),
                 ])
-                ->columns(2)
-                ->columnSpanFull(),
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->afterStateUpdated(function($state, $set) {
+                        $set('duration', $state['duration_num'].' '.Str::plural($state['duration_modifier'], $state['duration_num']));
+                    }),
+                Forms\Components\Hidden::make('duration'),
                 Forms\Components\TextInput::make('price')
-                ->mask(RawJs::make('$money($input)')),
+                    ->mask(RawJs::make('$money($input)'))
+                    ->stripCharacters(','),
             ]);
     }
+
 
     public function table(Table $table): Table
     {
@@ -63,5 +69,16 @@ class OptionsRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function mutateFormDataBeforeSave(array $data): array
+    {
+        // Combine `duration_num` and `duration_modifier` into `duration`
+        $data['duration'] = "{$data['duration_num']} {$data['duration_modifier']}";
+
+        // Optional: Remove original fields if not needed
+        unset($data['duration_num'], $data['duration_modifier']);
+
+        return $data;
     }
 }

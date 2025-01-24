@@ -1,14 +1,17 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
+import primeui from 'tailwindcss-primeui'
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
-        './resources/**/*.blade.php',
-        './resources/**/*.js',
-        './resources/**/*.vue',
+        './resources/views/**/*.blade.php',
+        './resources/js/**/*.vue',
     ],
+
     theme: {
         extend: {
             fontFamily: {
@@ -16,5 +19,9 @@ export default {
             },
         },
     },
-    plugins: [],
+
+    plugins: [
+        forms,
+        primeui,
+    ],
 };

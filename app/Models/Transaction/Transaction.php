@@ -35,21 +35,21 @@ class Transaction extends Model
         'type' => TransactionType::class,
         'status' => TransactionStatus::class,
         'type' => TransactionType::class,
+        'reference' => 'string'
     ];
 
-    public static function TopUp(User $user, int $amount): static{
+    public static function TopUp(User $user, string $method, int $amount): static{
         $transaction = static::create([
             'causer_id' => $user->id,
             'amount' => abs($amount),
             'type' => TransactionType::TopUp,
-            'method' => '',
-            'reference' => '',
+            'method' => $method,
         ]);
         return $transaction;
     }
 
     public function accept(){
-        return $this->update(['status' => TransactionStatus::Success]);
+        return $this->update(['status' => TransactionStatus::Accepted]);
     }
 
     public function causer(){

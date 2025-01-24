@@ -11,6 +11,12 @@ class OrderProduct extends Model
         'product_id',
     ];
 
+    protected $appends = ['total'];
+
+    public function getTotalAttribute(){
+        return $this->orderProductItems->sum(fn($item) => $item->price * $item->quantity);
+    }
+
     public function order(){
         return $this->belongsTo(Order::class);
     }

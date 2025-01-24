@@ -3,10 +3,11 @@
 namespace App\Observers;
 
 use App\Enums\TransactionType;
+use App\Models\Telegram\Account;
 use App\Models\Transaction\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Str;
 class TransactionObserver
 {
     protected $debit = [
@@ -29,6 +30,9 @@ class TransactionObserver
         if(in_array($transaction->type, $this->credit))
             $transaction->amount = -abs($transaction->amount);
 
+        if($transaction->type == TransactionType::TopUp)
+            $transaction->reference = Str::uuid7();
+
         if(!$transaction->causer_id)
             $transaction->causer_id = Auth::id();
     }
@@ -39,8 +43,15 @@ class TransactionObserver
      */
     public function created(Transaction $transaction): void
     {
-        $items = $transaction->order->orderProductItems;
-        $items->each(fn($item) => $item->sold());
+        if($transaction->order) {
+            $items = $transaction->order->orderProductItems;
+            $items->each(function($item) {
+                if($item->orderable_type == Account::class){
+                    $item->orderable->sold();
+                }
+                // if($item->)
+            });
+        }
     }
 
     /**

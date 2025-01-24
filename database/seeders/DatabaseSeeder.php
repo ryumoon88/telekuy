@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        User::first()->update(['balance' => 1000000000]);
+
         $admin = Role::create([
             'name' => 'admin'
         ]);

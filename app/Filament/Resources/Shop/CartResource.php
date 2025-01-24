@@ -11,7 +11,10 @@ use App\Models\Shop\Cart;
 use App\Models\Shop\CartProductItem;
 use App\Models\Shop\Product;
 use App\Models\Telegram\Account;
+use App\Models\Telegram\BotOption;
+use App\Models\Telegram\Referral;
 use Awcodes\TableRepeater\Header;
+use Cknow\Money\Money;
 use Filament\Forms;
 use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Form;
@@ -27,6 +30,8 @@ use Filament\Tables\Table;
 use Icetalker\FilamentTableRepeatableEntry\Infolists\Components\TableRepeatableEntry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+use function GuzzleHttp\default_ca_bundle;
 
 class CartResource extends Resource
 {
@@ -46,20 +51,69 @@ class CartResource extends Resource
                     ->relationship('owner', 'name'),
                 Forms\Components\Repeater::make('cartProducts')
                     ->relationship('cartProducts')
+                    ->defaultItems(1)
                     ->schema([
                         Forms\Components\Select::make('product_id')
                             ->relationship('product', 'name')
                             ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                             ->searchable()
                             ->live()
+                            ->afterStateUpdated(function($set, $record, $state){
+                                $product = Product::find($state);
+                                $set('cartProductItems', []);
+                                $set('type', $state ? $product->type : null);
+                            })
+                            ->afterStateHydrated(fn($set, $record) => $record ? $set('type', $record->product->type) : null)
                             ->getOptionLabelFromRecordUsing(fn($record) => $record->type->name." | ".$record->name)
                             ->preload(),
+                        Forms\Components\TextInput::make('type')
+                            ->live()
+                            ->hidden(),
+                        TableRepeaterCustom::make('cartProductItems')
+                            ->label('Durations')
+                            ->relationship('cartProductItems')
+                            ->headers([
+                                Header::make('duration')
+                            ])
+                            ->schema([
+                                Forms\Components\Select::make('cartable_id')
+                                    ->options(function($get){
+                                        $options = BotOption::whereHas('bot.product', function($query) use($get) {
+                                            $query->where('products.id', $get('../../product_id'));
+                                        })->get()->pluck('duration', 'id');
+                                        return $options;
+                                    })
+                                        ->getOptionLabelUsing(fn($record) => $record->duration . ' | '.$record)
+                                        ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                            ])
+                            ->streamlined()
+                            ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
+                                $data['cartable_type'] = ProductType::Bot;
+                                return $data;
+                            })
+                            ->visible(fn($get) => $get('type') == ProductType::Bot),
+                        Forms\Components\Repeater::make("cartProductItems")
+                            ->relationship('cartProductItems')
+                            ->schema([
+                                Forms\Components\TextInput::make('extra.referral_target'),
+                                Forms\Components\TextInput::make('quantity')
+                                    ->numeric()
+                                    ->minValue(1)
+                            ])
+                                ->defaultItems(1)
+                                ->maxItems(1)
+                                ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
+                                    $data['cartable_type'] = ProductType::Referral;
+                                    return $data;
+                                })
+                                ->visible(fn($get) => $get('type') == ProductType::Referral),
                         TableRepeaterCustom::make('cartProductItems')
                             ->label('Accounts')
                             ->relationship('cartProductItems')
                             ->headers([
                                 Header::make('phone_number')
                             ])
+                            ->defaultItems(1)
                             ->schema([
                                 Forms\Components\Select::make('cartable_id')
                                     ->searchable()
@@ -73,10 +127,10 @@ class CartResource extends Resource
                             ])
                             ->streamlined()
                             ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
-                                $product = Product::find($get('product_id'));
-                                $data['cartable_type'] = $product->type;
+                                $data['cartable_type'] = ProductType::Account;
                                 return $data;
                             })
+                            ->visible(fn($get) => $get('type') == ProductType::Account)
                     ])
                     ->columnSpanFull()
             ]);
@@ -99,14 +153,13 @@ class CartResource extends Resource
             // ->record($record)
             ->schema([
                 Infolists\Components\TextEntry::make('owner.name'),
-                Infolists\Components\RepeatableEntry::make('cartProducts')
+                TableRepeatableEntry::make('cartProducts')
                     ->schema([
                         Infolists\Components\TextEntry::make('product.name')
                             ->label('Product Name'),
                         Infolists\Components\TextEntry::make('product.type')
                             ->label('Product Type'),
                         TableRepeatableEntry::make('cartProductItems')
-                            ->label('Accounts in Cart')
                             ->schema([
                                 Infolists\Components\TextEntry::make('cartable.phone_number')
                                     ->label('Phone Number'),
@@ -114,29 +167,78 @@ class CartResource extends Resource
                                     ->label('Country Code'),
                                 Infolists\Components\TextEntry::make('price')
                                     ->label('Price')
-                                    ->money(),
+                                    ->money()
+                                    ->alignEnd(),
                             ])
-                            ->columns(3)
-                            ->columnSpanFull()
+                            ->striped()
+                            ->visible(fn($record) => $record->product->type == ProductType::Account),
+                        TableRepeatableEntry::make('cartProductItems')
+                            ->label('')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('extra.target')
+                                    ->label('Referral Target'),
+                                Infolists\Components\TextEntry::make('quantity')
+                                    ->label('Quantity'),
+                                Infolists\Components\TextEntry::make('price')
+                                    ->label('Price')
+                                    ->money()
+                                    ->alignEnd(),
+                            ])
+                            ->striped()
+                            ->visible(fn($record) => $record->product->type == ProductType::Referral),
+                        TableRepeatableEntry::make('cartProductItems')
+                            ->label('')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('cartable.duration')
+                                    ->label('Duration'),
+                                Infolists\Components\TextEntry::make('price')
+                                    ->label('Price')
+                                    ->money()
+                                    ->alignEnd(),
+                            ])
+                            ->visible(fn($record) => $record->product->type == ProductType::Bot),
+                    ])->columnSpanFull(),
+                Infolists\Components\Section::make()
+                    ->schema([
+                        Infolists\Components\TextEntry::make('total')
+                        ->default('')
+                        ->inlineLabel()
+                        ->formatStateUsing(function($record){
+                            return Money::IDR($record->cartProductItems->sum(function($item) {
+                                return $item->price * $item->quantity;
+                            }), true);
+                        })
+                        ->columnSpanFull()
+                        ->alignEnd(),
                     ])
-                    ->columns(2)
-                    ->columnSpanFull()
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function($query) {
+                $query->with('cartProductItems');
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('owner.name'),
                 Tables\Columns\TextColumn::make('cart_product_items_count')
                     ->label('Cart Items')
                     ->counts('cartProductItems'),
-                Tables\Columns\TextColumn::make('cart_product_items_sum_cart_product_itemsprice')
+                Tables\Columns\TextColumn::make('total')
                     ->label('Total')
-                    ->default(0)
-                    ->sum('cartProductItems', 'cart_product_items.price')
+                    ->getStateUsing(function ($record) {
+                        // Calculate total by summing price * quantity for each item
+                        return $record->cartProductItems->sum(function ($item) {
+                            return $item->price * $item->quantity;
+                        });
+                    })
                     ->money()
+                // Tables\Columns\TextColumn::make('cart_product_items_sum_cart_product_itemsprice')
+                //     ->label('Total')
+                //     ->default(0)
+                //     ->sum('cartProductItems', 'cart_product_items.price')
+                //     ->money()
             ])
             ->filters([
                 //

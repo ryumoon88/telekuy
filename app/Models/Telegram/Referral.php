@@ -3,6 +3,9 @@
 namespace App\Models\Telegram;
 
 use App\Enums\ReferralType;
+use App\Models\Shop\CartProductItem;
+use App\Models\Shop\OrderProductItem;
+use App\Models\Shop\Product;
 use App\Models\Transaction\Transaction;
 use App\Models\User;
 use Cknow\Money\Casts\MoneyIntegerCast;
@@ -37,15 +40,27 @@ class Referral extends Model
     }
 
     public function transactions(){
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(AccountTransaction::class);
     }
 
     public function accounts(){
-        return $this->morphedByMany(Account::class, 'transactable', 'transactions');
+        return $this->belongsToMany(Account::class, AccountTransaction::class,);
     }
 
     public function users(){
         return $this->belongsToMany(User::class, UserReferralFee::class)
             ->withPivot(['fee']);
+    }
+
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
+
+    public function cartProductItem(){
+        return $this->morphOne(CartProductItem::class, 'cartable');
+    }
+
+    public function orderProductItem(){
+        return $this->morphOne(OrderProductItem::class, 'orderable');
     }
 }

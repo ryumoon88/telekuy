@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\Shop\OrderProductItem;
 use App\Models\Telegram\Bot;
+use App\Models\Telegram\BotOption;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,10 +17,13 @@ return new class extends Migration
     {
         Schema::create('bot_licenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Bot::class);
+            $table->foreignIdFor(User::class)->nullable();
+            $table->foreignIdFor(OrderProductItem::class);
+            $table->foreignIdFor(BotOption::class);
+            $table->string('duration')->nullable();
             $table->string('license');
-            $table->boolean('active');
-            $table->dateTime('expired_at');
+            $table->boolean('active')->default(false);
+            $table->dateTime('expired_at')->nullable();
             $table->timestamps();
         });
     }

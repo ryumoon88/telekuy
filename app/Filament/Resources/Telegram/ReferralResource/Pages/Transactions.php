@@ -8,6 +8,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -40,7 +41,19 @@ class Transactions extends ManageRelatedRecords
         return $table
             ->recordTitleAttribute('causer.name')
             ->columns([
+                Tables\Columns\TextColumn::make('created_at')->label('Date')->dateTime(),
+                Tables\Columns\TextColumn::make('account.phone_number'),
                 Tables\Columns\TextColumn::make('causer.name'),
+                Tables\Columns\TextColumn::make('type')->badge(),
+                Tables\Columns\TextColumn::make('referral.name'),
+                Tables\Columns\TextColumn::make('amount')
+                    ->color(fn($state) => $state <= 0 ? 'danger' : 'success')
+                    ->money()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Profit')
+                            ->money()
+                    ),
             ])
             ->filters([
                 //

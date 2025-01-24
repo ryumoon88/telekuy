@@ -201,8 +201,8 @@ class AccountResource extends Resource implements HasShieldPermissions
             ->actions([
                 Tables\Actions\Action::make('add_to_cart')
                     ->action(function($record){
-                        $cart = Auth::user()->cart ?? Auth::user()->cart()->create();
-                        $cart->addItem($record);
+                        $cart = Auth::user()->cart()->firstOrCreate();
+                        $cart->addAccount($record);
                     })
                     ->visible(fn($record) => $record->status == AccountStatus::Available),
                 Tables\Actions\ActionGroup::make([

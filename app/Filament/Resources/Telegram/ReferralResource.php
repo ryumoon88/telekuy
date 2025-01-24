@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Telegram;
 
+use App\Enums\AccountTransactionType;
 use App\Enums\ReferralType;
 use App\Enums\TransactionType;
 use App\Filament\Clusters\Referrals;
 use App\Filament\Resources\Telegram\ReferralResource\Pages;
 use App\Filament\Resources\Telegram\ReferralResource\RelationManagers;
+use App\Models\Telegram\AccountTransaction;
 use App\Models\Telegram\Referral;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -67,7 +69,7 @@ class ReferralResource extends Resource
                 Tables\Columns\TextColumn::make('accounts_count')
                     ->label('Referred Accounts')
                     ->counts([
-                        'accounts' => fn($query) => $query->where('type', TransactionType::AccountReferral)
+                        'accounts' => fn($query) => $query->where('type', AccountTransactionType::Referral)
                     ])
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')

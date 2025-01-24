@@ -19,8 +19,10 @@ return new class extends Migration
             $table->enum('type', ['deposit', 'withdrawal', 'payment', 'top-up']);
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
             $table->foreignIdFor(User::class, 'causer_id')->nullable();
-            $table->foreignIdFor(Order::class);
+            $table->foreignIdFor(Order::class)->nullable();
             $table->integer('amount');
+            $table->string('reference')->nullable();
+            $table->json('tripay_payload')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

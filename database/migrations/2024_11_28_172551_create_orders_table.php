@@ -36,6 +36,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(OrderProduct::class);
             $table->nullableUuidMorphs('orderable');
+            $table->boolean('completed')->default(false);
             $table->integer('quantity');
             $table->integer('price');
             $table->json('extra')->nullable();

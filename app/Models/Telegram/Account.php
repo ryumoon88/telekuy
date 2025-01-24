@@ -14,6 +14,7 @@ use App\Models\Shop\ProductHasAccount;
 use App\Models\Transaction\Transaction;
 use App\Models\User;
 use Cknow\Money\Casts\MoneyIntegerCast;
+use Cknow\Money\Money;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -23,11 +24,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Tapp\FilamentCountryCodeField\Concerns\HasCountryCodeData;
+use Tapp\FilamentCountryCodeField\Concerns\HasFlags;
 use Znck\Eloquent\Traits\BelongsToThrough;
 
 class Account extends Model
 {
     use HasFactory, HasUuids, BelongsToThrough, SoftDeletes;
+    use HasCountryCodeData, HasFlags;
 
     protected $fillable = [
         'country_code',
@@ -40,6 +44,9 @@ class Account extends Model
     protected $casts = [
         'status' => AccountStatus::class,
     ];
+
+    protected $appends = ['priceDisplay', 'isoCode'];
+
 
     public static function ImportAccounts($data): bool{
         $selling_price = $data['selling_price'];
@@ -72,18 +79,54 @@ class Account extends Model
         }
     }
 
-    public static function DownloadAccounts($name, object $accounts) {
-        $accounts = is_array($accounts) ? $accounts : new Collection($accounts);
-        if (!Storage::disk('local')->exists('zip'))
+    public static function DownloadAccounts($name, object $accounts)
+    {
+        $accounts = is_array($accounts) ? collect($accounts) : $accounts;
+
+        if (!Storage::disk('local')->exists('zip')) {
             Storage::disk('local')->makeDirectory('zip');
-        $filename = $name.'-' . uniqid() . '.zip';
+        }
+
+        $filename = $name . '-' . uniqid() . '.zip';
         $destination = Storage::disk('local')->path('zip/' . $filename);
-        $folders = $accounts->map(fn($account) => Storage::disk('local')->path($account->path))->toArray();
-        if (zipFolders($folders, $destination))
-            return response()->download($destination, );
-        return false;
+
+        // Check for valid folders in storage and map account paths
+        $accountPaths = $accounts->map(fn($account) => Storage::disk('local')->path($account->path))
+                                ->filter(fn($path) => file_exists($path) && is_dir($path))
+                                ->toArray();
+
+        // Verify storage contains only valid account folders
+        $storageFolders = collect(Storage::disk('local')->directories('accounts'));
+        $validFolders = $storageFolders->filter(fn($folder) => in_array(Storage::disk('local')->path($folder), $accountPaths));
+
+        // Prevent zip creation if no valid folders exist
+        if ($validFolders->isEmpty()) {
+            return response()->json(['message' => 'No valid account folders available in storage.'], 404);
+        }
+
+        // Create zip file and return download response
+        $foldersToZip = $validFolders->map(fn($folder) => Storage::disk('local')->path($folder))->toArray();
+
+        if (zipFolders($foldersToZip, $destination)) {
+            return response()->download($destination);
+        }
+
+        return response()->json(['message' => 'Failed to create zip file.'], 500);
     }
 
+
+
+    // Attributes
+    public function getPriceDisplayAttribute(){
+        return Money::IDR($this->selling_price, true);
+    }
+
+    public function getIsoCodeAttribute(){
+        return $this->getIsoCodeByCountryCode($this->country_code);
+    }
+
+
+    // Function
     public function sold(){
         $this->update(['status' => AccountStatus::Sold]);
     }

@@ -6,6 +6,7 @@ use App\Enums\AccountStatus;
 use App\Enums\TransactionType;
 use App\Models\Transaction\Transaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 use Tapp\FilamentCountryCodeField\Concerns\HasCountryCodeData;
 use Tapp\FilamentCountryCodeField\Tables\Columns\CountryCodeColumn;
 use Illuminate\Support\Str;
@@ -23,7 +24,7 @@ class AccountFactory extends Factory
      */
     public function definition(): array
     {
-        $country_data = collect($this->getCountriesData())->random(1)->first();
+        $country_data = collect($this->getCountriesData())->filter(fn($data) => Arr::has($data, 'iso_code') && Str::of(Arr::get($data, 'country_code'))->length() < 10)->random(1)->first();
         $locale = Str::lower($country_data['iso_code']).'_'.$country_data['iso_code'];
         return [
             'country_code' => $country_data['country_code'],

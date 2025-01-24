@@ -8,6 +8,7 @@ use App\Models\Telegram\Account;
 use App\Models\Telegram\Bot;
 use App\Models\Telegram\BotOption;
 use App\Models\Telegram\Bundle;
+use App\Models\Telegram\Referral;
 use App\Observers\ProductObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -53,5 +54,9 @@ class Product extends Model
 
     public function bundles(){
         return $this->belongsToMany(Bundle::class, ProductHasBundle::class);
+    }
+
+    public function referral(){
+        return $this->hasOne(Referral::class);
     }
 }

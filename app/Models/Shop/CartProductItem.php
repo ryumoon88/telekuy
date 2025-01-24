@@ -2,6 +2,7 @@
 
 namespace App\Models\Shop;
 
+use App\Enums\ProductType;
 use App\Observers\CartProductItemObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,7 @@ class CartProductItem extends Model
     ];
 
     protected $casts = [
-        'extra' => 'json'
+        'extra' => 'json',
     ];
 
     public function cartProduct(){

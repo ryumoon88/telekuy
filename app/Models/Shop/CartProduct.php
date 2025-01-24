@@ -19,6 +19,12 @@ class CartProduct extends Model
         'cartProductItems'
     ];
 
+    protected $appends = ['total'];
+
+    public function getTotalAttribute(){
+        return $this->cartProductItems->sum(fn($item) => $item->price * $item->quantity);
+    }
+
     public function product(){
         return $this->belongsTo(Product::class);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Shop\Product;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->enum('type', ['one time', 'active']);
             $table->integer('price');
             $table->integer('fee');
+            $table->foreignIdFor(Product::class)->nullable();
             $table->timestamps();
             $table->softDeletes();
 

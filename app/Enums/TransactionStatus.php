@@ -8,15 +8,15 @@ use Filament\Support\Contracts\HasLabel;
 enum TransactionStatus: string implements HasLabel, HasColor
 {
     case Pending = 'pending';
-    case Success = 'success';
-    case Failed = 'failed';
+    case Accepted = 'accepted';
+    case Rejected = 'rejected';
 
     public function getLabel(): ?string
     {
         return match($this){
             self::Pending => 'Pending',
-            self::Success => 'Success',
-            self::Failed => 'Failed',
+            self::Accepted => 'Accepted',
+            self::Rejected => 'Rejected',
         };
     }
 
@@ -24,8 +24,8 @@ enum TransactionStatus: string implements HasLabel, HasColor
     {
         return match($this) {
             self::Pending => 'warning',
-            self::Success => 'success',
-            self::Failed => 'danger',
+            self::Accepted => 'success',
+            self::Rejected => 'danger',
         };
     }
 }

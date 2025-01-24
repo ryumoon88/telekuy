@@ -7,6 +7,7 @@ use App\Filament\Resources\Shop\ProductResource\Pages;
 use App\Filament\Resources\Shop\ProductResource\RelationManagers;
 use App\Models\Shop\Product;
 use App\Models\Telegram\Bot;
+use App\Models\Telegram\Referral;
 use Cknow\Money\Money;
 use Filament\Forms;
 use Filament\Forms\Components\ToggleButtons;
@@ -45,7 +46,6 @@ class ProductResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255)
-                            ->live(onBlur: true)
                             ->afterStateUpdated(function($state, $set) {
                                 $newstr = preg_replace('/[^a-zA-Z0-9\']/', '', $state);
                                 $newstr = str_replace("'", '', $newstr);
@@ -62,14 +62,30 @@ class ProductResource extends Resource
                             ->default(static::getTypeDefault())
                             ->disabled(static::getTypeDisabled()),
                         Forms\Components\Select::make('bot')
-                            ->relationship('bot', 'name')
+                            ->relationship('bot', 'name', function($query, $operation) {
+                                if($operation == 'create')
+                                    $query->doesntHave('product');
+                            })
                             ->visible(fn($get) => $get('type') == ProductType::Bot->value)
-                            ->formatStateUsing(fn($record) => $record?->bot->id)
+                            ->formatStateUsing(fn($record) => $record?->bot?->id)
                             ->required()
                             ->saveRelationshipsUsing(function(Product $record, $state) {
                                 $bot = Bot::find($state);
                                 $bot->product()->associate($record->id);
                                 $bot->save();
+                            }),
+                        Forms\Components\Select::make('referral')
+                            ->relationship('referral', 'name', function($query, $operation) {
+                                if($operation == 'create')
+                                    $query->doesntHave('product');
+                            })
+                            ->visible(fn($get) => $get('type') == ProductType::Referral->value)
+                            ->formatStateUsing(fn($record) => $record?->referral?->id)
+                            ->required()
+                            ->saveRelationshipsUsing(function(Product $record, $state) {
+                                $referral = Referral::find($state);
+                                $referral->product()->associate($record->id);
+                                $referral->save();
                             }),
                         Forms\Components\RichEditor::make('description')
                             ->columnSpanFull(),
@@ -104,6 +120,8 @@ class ProductResource extends Resource
                     Infolists\Components\TextEntry::make('type'),
                     Infolists\Components\TextEntry::make('bot.name')
                         ->visible(fn($record) => $record->type == ProductType::Bot),
+                    Infolists\Components\TextEntry::make('referral.name')
+                        ->visible(fn($record) => $record->type == ProductType::Referral),
                     Infolists\Components\TextEntry::make('description')
                         ->html()
                         ->columnSpanFull(),
@@ -154,7 +172,6 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->getStateUsing(fn($record) => match($record->type) {
                         ProductType::Account => $record->accounts_count,
-                        ProductType::Bundle => $record->bundles_count,
                         default => $record->amount
                     })
                     ->numeric()
@@ -170,7 +187,8 @@ class ProductResource extends Resource
                             $min = Money::IDR($record->accounts_min_selling_price, true);
                             $max = Money::IDR($record->accounts_max_selling_price, true);
                         }
-                        return "$min ~ $max";
+                        $display = $min == $max ? $min : "$min ~ $max";
+                        return $display;
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
@@ -242,7 +260,7 @@ class ProductResource extends Resource
         return function($operation) {
             return match($operation) {
                 'createOptionAccount' => ProductType::Account,
-                'createOptionBundle' => ProductType::Bundle,
+                // 'createOptionBundle' => ProductType::Bundle,
                 default => null,
             };
         };

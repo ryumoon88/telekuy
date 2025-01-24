@@ -2,3 +2,7 @@
 @import "/vendor/awcodes/filament-table-repeater/resources/css/plugin.css";
 
 @config 'tailwind.config.js';
+
+.it-table-repeateable-header-cell {
+    @apply text-sm
+}

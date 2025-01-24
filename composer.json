@@ -16,23 +16,30 @@
         "filament/filament": "^3.2",
         "haruncpi/laravel-id-generator": "^1.1",
         "icetalker/filament-table-repeatable-entry": "^1.0",
+        "inertiajs/inertia-laravel": "^2.0",
         "lara-zeus/quantity": "^1.0",
         "laravel/framework": "^11.31",
+        "laravel/reverb": "^1.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "nekoding/tripay": "^2.1",
         "pelmered/filament-money-field": "^1.4",
+        "pusher/pusher-php-server": "^7.2",
         "staudenmeir/belongs-to-through": "^2.5",
-        "tapp/filament-country-code-field": "dev-main"
+        "staudenmeir/eloquent-has-many-deep": "^1.20",
+        "tapp/filament-country-code-field": "dev-main",
+        "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.14",
         "fakerphp/faker": "^1.23",
+        "laravel/breeze": "^2.3",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.1",
-        "pestphp/pest": "^3.5",
+        "pestphp/pest": "^3.7",
         "pestphp/pest-plugin-laravel": "^3.0"
     },
     "autoload": {

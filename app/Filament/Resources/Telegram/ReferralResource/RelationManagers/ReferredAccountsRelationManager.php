@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Telegram\ReferralResource\RelationManagers;
 
+use App\Enums\AccountTransactionType;
 use App\Enums\TransactionType;
 use App\Filament\Resources\Telegram\AccountResource;
 use Filament\Forms;
@@ -30,7 +31,7 @@ class ReferredAccountsRelationManager extends RelationManager
     {
         return AccountResource::table($table)
             ->recordTitleAttribute('phone_number')
-            ->modifyQueryUsing(fn($query) => $query->where('type', TransactionType::AccountReferral))
+            ->modifyQueryUsing(fn($query) => $query->where('type', AccountTransactionType::Referral))
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
