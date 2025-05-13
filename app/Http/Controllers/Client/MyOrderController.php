@@ -69,9 +69,10 @@ class MyOrderController extends Controller
         $target = $request->get('target');
         $type = $request->get('type');
 
-        if($order->status == OrderStatus::Pending){
+        if($order->status != OrderStatus::Completed){
             return redirect()->back();
         }
+
         if($target == 'account') {
             return Account::DownloadAccounts($order->id, $order->getAccounts());
         }

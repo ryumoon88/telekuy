@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop;
 
+use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use App\Enums\ProductType;
 use App\Enums\TransactionType;
@@ -11,6 +12,7 @@ use App\Filament\Resources\UserResource;
 use App\Filament\Widgets\StatsOrderOverview;
 use App\Forms\Components\TableRepeaterCustom;
 use App\Models\Shop\Order;
+use App\Models\Shop\OrderProductItem;
 use App\Models\Shop\Product;
 use App\Models\Shop\ProductHasAccount;
 use App\Models\Telegram\Account;
@@ -64,17 +66,18 @@ class OrderResource extends Resource
                             ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                             ->searchable()
                             ->live()
-                            ->afterStateUpdated(function($set, $record, $state){
+                            ->afterStateUpdated(function ($set, $record, $state) {
                                 $product = Product::find($state);
                                 $set('orderProductItems', []);
                                 $set('type', $state ? $product->type : null);
                             })
                             ->afterStateHydrated(fn($set, $record) => $record ? $set('type', $record->product->type) : null)
-                            ->getOptionLabelFromRecordUsing(fn($record) => $record->type->name." | ".$record->name)
+                            ->getOptionLabelFromRecordUsing(fn($record) => $record->type->name . " | " . $record->name)
                             ->preload(),
                         Forms\Components\TextInput::make('type')
                             ->live()
                             ->hidden(),
+                        // Bot
                         TableRepeaterCustom::make('orderProductItems')
                             ->label('Durations')
                             ->relationship('orderProductItems')
@@ -83,21 +86,22 @@ class OrderResource extends Resource
                             ])
                             ->schema([
                                 Forms\Components\Select::make('orderable_id')
-                                    ->options(function($get){
-                                        $options = BotOption::whereHas('bot.product', function($query) use($get) {
+                                    ->options(function ($get) {
+                                        $options = BotOption::whereHas('bot.product', function ($query) use ($get) {
                                             $query->where('products.id', $get('../../product_id'));
                                         })->get()->pluck('duration', 'id');
                                         return $options;
                                     })
-                                        ->getOptionLabelUsing(fn($record) => $record->duration . ' | '.$record)
-                                        ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                                    ->getOptionLabelUsing(fn($record) => $record->duration . ' | ' . $record)
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                             ])
                             ->streamlined()
-                            ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
+                            ->mutateRelationshipDataBeforeCreateUsing(function ($data, $get) {
                                 $data['orderable_type'] = ProductType::Bot;
                                 return $data;
                             })
                             ->visible(fn($get) => $get('type') == ProductType::Bot),
+                        // Referral
                         Forms\Components\Repeater::make("orderProductItems")
                             ->relationship('orderProductItems')
                             ->schema([
@@ -106,13 +110,14 @@ class OrderResource extends Resource
                                     ->numeric()
                                     ->minValue(1)
                             ])
-                                ->defaultItems(1)
-                                ->maxItems(1)
-                                ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
-                                    $data['orderable_type'] = ProductType::Referral;
-                                    return $data;
-                                })
-                                ->visible(fn($get) => $get('type') == ProductType::Referral),
+                            ->defaultItems(1)
+                            ->maxItems(1)
+                            ->mutateRelationshipDataBeforeCreateUsing(function ($data, $get) {
+                                $data['orderable_type'] = ProductType::Referral;
+                                return $data;
+                            })
+                            ->visible(fn($get) => $get('type') == ProductType::Referral),
+                        // Account
                         TableRepeaterCustom::make('orderProductItems')
                             ->label('Accounts')
                             ->relationship('orderProductItems')
@@ -123,16 +128,16 @@ class OrderResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('orderable_id')
                                     ->searchable()
-                                    ->options(function($get, $state) {
-                                        $options = Account::whereHas('product', function($query) use ($get, $state) {
+                                    ->options(function ($get, $state) {
+                                        $options = Account::whereHas('product', function ($query) use ($get, $state) {
                                             $query->where('products.id', $get('../../product_id'));
                                         })->get()->pluck('phone_number', 'id');
                                         return $options;
                                     })
-                                        ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                             ])
                             ->streamlined()
-                            ->mutateRelationshipDataBeforeCreateUsing(function($data, $get) {
+                            ->mutateRelationshipDataBeforeCreateUsing(function ($data, $get) {
                                 $data['orderable_type'] = ProductType::Account;
                                 return $data;
                             })
@@ -146,86 +151,138 @@ class OrderResource extends Resource
     {
         return $infolist->schema([
             Infolists\Components\TextEntry::make('buyer.name'),
-                TableRepeatableEntry::make('orderProducts')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('product.name')
-                            ->label('Product Name'),
-                        Infolists\Components\TextEntry::make('product.type')
-                            ->label('Product Type'),
-                        TableRepeatableEntry::make('orderProductItems')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('orderable.phone_number')
-                                    ->label('Phone Number'),
-                                Infolists\Components\TextEntry::make('orderable.country_code')
-                                    ->label('Country Code'),
-                                Infolists\Components\TextEntry::make('price')
-                                    ->label('Price')
-                                    ->money()
-                                    ->alignEnd(),
-                            ])
-                            ->striped()
-                            ->visible(fn($record) => $record->product->type == ProductType::Account),
-                        TableRepeatableEntry::make('orderProductItems')
-                            ->label('')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('extra.target')
-                                    ->label('Referral Target'),
-                                Infolists\Components\TextEntry::make('quantity')
-                                    ->label('Quantity'),
-                                Infolists\Components\TextEntry::make('price')
-                                    ->label('Price')
-                                    ->money()
-                                    ->alignEnd(),
-                                Infolists\Components\TextEntry::make('total')
-                                    ->label('Total')
-                                    ->default(fn($record) => $record->price * $record->quantity)
-                                    ->money()
-                                    ->alignEnd(),
-                                Infolists\Components\TextEntry::make('action')
-                                    ->suffixAction(
-                                        Infolists\Components\Actions\Action::make('completed')
-                                            ->icon('heroicon-o-check-circle')
-                                            ->action(function($record) {
-                                                dd($record);
-                                            })
-                                    )
-                                    ->alignEnd()
-                                    ->default('')
-                            ])
-                            ->striped()
-                            ->visible(fn($record) => $record->product->type == ProductType::Referral),
-                        TableRepeatableEntry::make('orderProductItems')
-                            ->label('')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('orderable.duration')
-                                    ->label('Duration'),
-                                Infolists\Components\TextEntry::make('price')
-                                    ->label('Price')
-                                    ->money()
-                                    ->alignEnd(),
-                            ])
-                            ->visible(fn($record) => $record->product->type == ProductType::Bot),
-                    ])->columnSpanFull(),
-                Infolists\Components\Section::make()
-                    ->schema([
-                        Infolists\Components\TextEntry::make('total')
+            TableRepeatableEntry::make('orderProducts')
+                ->schema([
+                    Infolists\Components\TextEntry::make('product.name')
+                        ->label('Product Name'),
+                    Infolists\Components\TextEntry::make('product.type')
+                        ->label('Product Type'),
+                    // Account
+                    TableRepeatableEntry::make('orderProductItems')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('orderable.phone_number')
+                                ->label('Phone Number'),
+                            Infolists\Components\TextEntry::make('orderable.country_code')
+                                ->label('Country Code'),
+                            Infolists\Components\TextEntry::make('price')
+                                ->label('Price')
+                                ->money()
+                                ->alignEnd(),
+                        ])
+                        ->striped()
+                        ->visible(fn($record) => $record->product->type == ProductType::Account),
+                    // Referral
+                    TableRepeatableEntry::make('orderProductItems')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('extra.target')
+                                ->label('Referral Target'),
+                            Infolists\Components\TextEntry::make('quantity')
+                                ->label('Quantity'),
+                            Infolists\Components\TextEntry::make('price')
+                                ->label('Price')
+                                ->money()
+                                ->alignEnd(),
+                            Infolists\Components\TextEntry::make('total')
+                                ->label('Total')
+                                ->default(fn($record) => $record->price * $record->quantity)
+                                ->money()
+                                ->alignEnd(),
+                            Infolists\Components\TextEntry::make('action')
+                                ->formatStateUsing(function ($record) {
+                                    return $record->handler_id && $record->handler_id != Auth::user()->id ? 'Handled by ' . $record->handler->name : '';
+                                })
+                                ->suffixActions([
+                                    Infolists\Components\Actions\Action::make('completed')
+                                        ->icon('heroicon-o-check-circle')
+                                        ->color(fn($record) => $record->completed ? 'success' : '')
+                                        ->action(function ($record) {
+                                            $record->update(['completed' => true]);
+                                        })
+                                        ->disabled(fn($record) => $record->completed)
+                                        ->visible(fn($record) => $record->handler_id == Auth::user()->id),
+                                    Infolists\Components\Actions\Action::make('take')
+                                        ->icon('far-hand')
+                                        ->color(fn($record) => $record->completed ? 'success' : '')
+                                        ->action(function ($record) {
+                                            $record->handler_id = Auth::user()->id;
+                                            $record->save();
+                                        })
+                                        ->tooltip('Take')
+                                        ->visible(fn($record) => $record->handler_id == null)
+                                ])
+                                ->alignEnd()
+                                ->default('')
+                        ])
+                        ->striped()
+                        ->visible(fn($record) => $record->product->type == ProductType::Referral),
+                    // Bot
+                    TableRepeatableEntry::make('orderProductItems')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('orderable.duration')
+                                ->label('Duration'),
+                            Infolists\Components\TextEntry::make('license.license')
+                                ->limit(10)
+                                ->copyable(),
+                            Infolists\Components\TextEntry::make('price')
+                                ->label('Price')
+                                ->money()
+                                ->alignEnd(),
+                            Infolists\Components\TextEntry::make('action')
+                                ->formatStateUsing(function ($record) {
+                                    return $record->handler_id && $record->handler_id != Auth::user()->id ? 'Handled by ' . $record->handler->name : '';
+                                })
+                                ->suffixActions([
+                                    Infolists\Components\Actions\Action::make('update_license')
+                                        ->icon('heroicon-o-check-circle')
+                                        ->modal()
+                                        ->modalHeading("Add License Key")
+                                        ->form([
+                                            Forms\Components\TextInput::make('license')
+                                        ])
+                                        ->action(function (OrderProductItem $record, $data) {
+                                            $record->createOrUpdateLicense($data['license']);
+
+                                        })
+                                        ->color(fn($record) => $record->completed ? 'success' : '')
+                                        ->disabled(fn($record) => $record->completed)
+                                        ->visible(fn($record) => $record->handler_id == Auth::user()->id),
+                                    Infolists\Components\Actions\Action::make('take')
+                                        ->icon('far-hand')
+                                        ->color(fn($record) => $record->completed ? 'success' : '')
+                                        ->action(function ($record) {
+                                            $record->handler_id = Auth::user()->id;
+                                            $record->save();
+                                        })
+                                        ->tooltip('Take')
+                                        ->visible(fn($record) => $record->handler_id == null)
+                                ])
+                                ->alignEnd()
+                                ->default('')
+                        ])
+                        ->visible(fn($record) => $record->product->type == ProductType::Bot),
+                ])->columnSpanFull(),
+            Infolists\Components\Section::make()
+                ->schema([
+                    Infolists\Components\TextEntry::make('total')
                         ->default('')
                         ->inlineLabel()
-                        ->formatStateUsing(function($record){
-                            return Money::IDR($record->orderProductItems->sum(function($item) {
+                        ->formatStateUsing(function ($record) {
+                            return Money::IDR($record->orderProductItems->sum(function ($item) {
                                 return $item->price * $item->quantity;
                             }), true);
                         })
                         ->columnSpanFull()
                         ->alignEnd(),
-                    ])
+                ])
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function($query){
+            ->modifyQueryUsing(function ($query) {
                 $query->with(['buyer']);
             })
             ->columns([
@@ -256,11 +313,11 @@ class OrderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('pay')
-                    ->action(function($record, $data, $livewire){
+                    ->action(function ($record, $data, $livewire) {
                         $record->pay();
                         $livewire->dispatch('userBalanceUpdated');
                     })
-                    ->hidden(fn($record) => $record->status != OrderStatus::Pending),
+                    ->hidden(fn($record) => $record->payment_status == OrderPaymentStatus::Paid),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

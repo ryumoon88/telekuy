@@ -8,6 +8,10 @@ import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import { definePreset } from '@primevue/themes';
 import { Ripple } from 'primevue';
+import ConfirmationService from 'primevue/confirmationservice';
+import Default from './Layouts/Default.vue';
+import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -28,39 +32,40 @@ const TelekuyPreset = definePreset(Aura, {
             950: '{orange.950}'
         },
         colorScheme: {
-            light: {
-                surface: {
-                    0: '{blue.950}',
-                    50: '{blue.900}',
-                    100: '{blue.800}',
-                    200: '{blue.700}',
-                    300: '{blue.600}',
-                    400: '{blue.500}',
-                    500: '{blue.400}',
-                    600: '{blue.300}',
-                    700: '{blue.200}',
-                    800: '{blue.100}',
-                    900: '{blue.50}',
-                    950: '#ffffff'
-                }
-            },
             dark: {
                 surface: {
+                    // 0: '{blue.950}',
+                    // 50: '{blue.900}',
+                    // 100: '{blue.800}',
+                    // 200: '{blue.700}',
+                    // 300: '{blue.600}',
+                    // 400: '{blue.500}',
+                    // 500: '{blue.400}',
+                    // 600: '{blue.300}',
+                    // 700: '{blue.200}',
+                    // 800: '{blue.100}',
+                    // 900: '{blue.50}',
+                    // 950: '#ffffff'
                     0: '#ffffff',
-                    50: '{zinc.50}',
-                    100: '{zinc.100}',
-                    200: '{zinc.200}',
-                    300: '{zinc.300}',
-                    400: '{zinc.400}',
-                    500: '{zinc.500}',
-                    600: '{zinc.600}',
-                    700: '{zinc.700}',
-                    800: '{zinc.800}',
-                    900: '{zinc.900}',
-                    950: '{zinc.950}'
+                    50: '{blue.50}',
+                    100: '{blue.100}',
+                    200: '{blue.200}',
+                    300: '{blue.300}',
+                    400: '{blue.400}',
+                    500: '{blue.500}',
+                    600: '{blue.600}',
+                    700: '{blue.700}',
+                    800: '{blue.800}',
+                    900: '{blue.900}',
+                    950: '{blue.950}'
+
+                },
+                contentBackground: '{blue.950}',
+                overlay: {
+                    popoverBackground: '{blue.950}'
                 }
             },
-        }
+        },
     },
     components: {
         menubar: {
@@ -87,20 +92,30 @@ const TelekuyPreset = definePreset(Aura, {
 
 createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: (name) => {
+        return resolvePageComponent(
             `./Pages/${name}.vue`,
             import.meta.glob('./Pages/**/*.vue'),
-        ),
+        ).then((page) => {
+            page.default.layout = page.default.layout || Default;
+            return page;
+        })
+        // console.log(page)
+        // page.default.layout = page.default.layout || Default
+        // return page;
+    },
     setup({ el, App, props, plugin }) {
+        el.classList.add('dark')
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(ConfirmationService)
+            .use(ToastService)
             .use(PrimeVue, {
                 theme: {
                     preset: TelekuyPreset,
                     options: {
-                        darkModeSelector: '.app',
+                        darkModeSelector: '.dark',
                         cssLayer: {
                             name: 'primevue', //any name you want. will be referenced on app.css
                             order: 'tailwind-base, primevue, tailwind-utilities'
@@ -110,6 +125,7 @@ createInertiaApp({
                 ripple: true
             })
             .directive('ripple', Ripple)
+            .directive('tooltip', Tooltip)
             .mount(el);
     },
     progress: {

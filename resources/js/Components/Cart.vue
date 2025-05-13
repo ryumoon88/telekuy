@@ -199,7 +199,7 @@ if (page.props.auth.user) {
                 </div>
                 <Button
                     icon="pi pi-cart-arrow-down"
-                    :disabled="cart.cart_products.length < 1"
+                    :disabled="cart.cart_products?.length < 1"
                     severity="warn"
                     label="Checkout"
                     @click="checkout"

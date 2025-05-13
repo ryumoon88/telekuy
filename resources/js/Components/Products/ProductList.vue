@@ -14,12 +14,13 @@ const props = defineProps({
 
 const products = ref({});
 
-axios.get(route("products.index", { format: "json", type: props.type })).then((response) => {
-    if(props.type){
-
-    }
-    products.value = response.data ?? {};
-});
+axios
+    .get(route("products.index", { format: "json", type: props.type }))
+    .then((response) => {
+        if (props.type) {
+        }
+        products.value = response.data ?? {};
+    });
 </script>
 
 <template>
@@ -31,20 +32,34 @@ axios.get(route("products.index", { format: "json", type: props.type })).then((r
             <DataView :value="product" layout="grid" class="scrollbar-thin">
                 <template #grid="props">
                     <div class="flex gap-3">
-                        <Link v-for="(item, index) in props.items" :href="route('products.show', {product: item.id})">
-                            <Card class="w-[12rem] bg-slate-50 relative overflow-hidden">
+                        <Link
+                            v-for="(item, index) in props.items"
+                            :href="route('products.show', { product: item.id })"
+                        >
+                            <Card
+                                class="w-[12rem] bg-slate-50 relative overflow-hidden h-full"
+                            >
                                 <template #header>
-                                    <img
-                                        class="w-[12rem]"
-                                        src="https://dummyimage.com/150x150/000/fff"
-                                        alt=""
-                                    />
+                                    <div
+                                        class="w-full bg-center bg-no-repeat bg-contain aspect-square"
+                                        :style="{
+                                            backgroundImage: `url('${
+                                                item.thumbnail_url ??
+                                                'https://fakeimg.pl/300x300?text=No+image'
+                                            }')`,
+                                        }"
+                                    >
+                                    </div>
                                 </template>
                                 <template #title>
-                                    <span class="text-primary">{{item.name}}</span>
+                                    <span class="text-primary">{{
+                                        item.name
+                                    }}</span>
                                 </template>
                                 <template #footer>
-                                    <Button class="w-full text-xs">View Items</Button>
+                                    <Button class="w-full text-xs"
+                                        >View Items</Button
+                                    >
                                 </template>
                             </Card>
                         </Link>

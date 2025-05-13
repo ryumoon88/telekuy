@@ -15,14 +15,14 @@ const statuses = {
     completed: "success",
 };
 
-const buttonLabels = {
-    pending: {
-        label: "Pay",
-    },
-    completed: {
-        severity: "success",
+const paymentButton = {
+    paid: {
         label: "Paid",
+        severity: "success",
         disabled: true,
+    },
+    unpaid: {
+        label: "Pay",
     },
 };
 
@@ -130,7 +130,9 @@ if (page.props.auth.user) {
                                         @click="() => payClicked(item)"
                                         size="small"
                                         icon="pi pi-wallet"
-                                        v-bind="buttonLabels[item.status]"
+                                        v-bind="
+                                            paymentButton[item.payment_status]
+                                        "
                                         class="text-xs"
                                     ></Button>
                                     <Button

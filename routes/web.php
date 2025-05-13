@@ -3,6 +3,7 @@
 use App\Enums\AccountStatus;
 use App\Enums\ProductType;
 use App\Http\Controllers\Callback\TripayCallbackController;
+use App\Http\Controllers\Client\ChatController;
 use App\Http\Controllers\Client\LicenseController;
 use App\Http\Controllers\Client\MyCartController;
 use App\Http\Controllers\Client\MyOrderController;
@@ -49,6 +50,14 @@ Route::middleware('auth')->group(function(){
     Route::group(['controller' => TopUpController::class, 'prefix' => 'top-up', 'as' => 'top-up.'], function(){
         Route::get('', 'index')->name('index');
         Route::post('', 'topUp')->name('topup');
+    });
+
+    Route::group(['controller' => ChatController::class, 'prefix' => 'chats', 'as' => 'chats.'], function(){
+        Route::get('latest', 'latest')->name('latest');
+        Route::post('request/{order}', 'store')->name('store');
+        Route::delete('{chat}/close', 'close')->name('close');
+        Route::post('{chat}/send', 'send')->name('send');
+        Route::get('{chat}/messages', 'messages')->name('messages');
     });
     // Route::group(['controller' => Ord])
 });

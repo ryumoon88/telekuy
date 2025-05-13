@@ -12,7 +12,10 @@ use Cknow\Money\Casts\MoneyCast;
 use Cknow\Money\Casts\MoneyIntegerCast;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\BroadcastsEvents;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -65,6 +68,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return true;
     }
 
+    // Broadcast
+
+    public function receivesBroadcastNotificationsOn()
+    {
+        return  'user.'.$this->getKey();
+    }
+
     // functions
 
     public function getCart(){
@@ -87,5 +97,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function referralFees(){
         return $this->belongsToMany(Referral::class, UserReferralFee::class)
             ->withPivot(['fee']);
+    }
+
+    public function adminChats(){
+        return $this->hasMany(Chat::class, 'admin_id');
+    }
+
+    public function clientChat(){
+        return $this->hasOne(Chat::class, 'user_id');
     }
 }

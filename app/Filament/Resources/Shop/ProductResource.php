@@ -23,7 +23,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Tapp\FilamentCountryCodeField\Forms\Components\CountryCodeSelect;
 
 use function GuzzleHttp\default_ca_bundle;
 
@@ -43,6 +45,21 @@ class ProductResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Product Information')
                     ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\ToggleButtons::make('thumbnail_type')
+                                ->live()
+                                ->options([
+                                    'country' => "Country",
+                                    'image' => "Image"
+                                ]),
+                                Forms\Components\FileUpload::make('thumbnail_image')
+                                    ->image()
+                                    ->visible(fn($get) => $get('thumbnail_type') == 'image'),
+                                CountryCodeSelect::make('thumbnail_country')
+                                    ->visible(fn($get) => $get('thumbnail_type') == 'country')
+                            ])
+                            ->columnSpan(2),
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255)
@@ -163,6 +180,9 @@ class ProductResource extends Resource
                     ;
             })
             ->columns([
+                Tables\Columns\ImageColumn::make('thumbnail_url')
+                    ->label('')
+                    ->getStateUsing(fn($record) => asset($record->thumbnail_url)),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')

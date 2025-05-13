@@ -68,6 +68,7 @@ function onPaymentClicked(paymentMethod) {
         amount: selectedTopUpOption.value,
     };
     axios.post(route("top-up.topup"), data).then((response) => {
+        console.log("Top up success");
         if (response.status == 200) {
             window.open(response.data.checkout_url, "_blank");
         }
@@ -76,66 +77,62 @@ function onPaymentClicked(paymentMethod) {
 </script>
 
 <template>
-    <Default>
-        <Card class="w-full">
-            <template #title>
-                <div class="text-lg text-center">Instant TopUp</div>
-            </template>
-            <template #content>
-                <div class="flex flex-col gap-3">
-                    <div class="">Top Up Amount</div>
-                    <Deferred data="topUpOptions">
-                        <template #fallback>Loading</template>
-                        <div class="grid grid-cols-3 gap-3">
-                            <Button
-                                class="w-full p-4 text-center text-black bg-white rounded-lg"
-                                :class="
-                                    selectedTopUpOption == topUpOption
-                                        ? 'bg-primary'
-                                        : ''
-                                "
-                                v-for="topUpOption in topUpOptions"
-                                @click="
-                                    () => onTopUpOptionSelected(topUpOption)
-                                "
+    <Card class="w-full">
+        <template #title>
+            <div class="text-lg text-center">Instant TopUp</div>
+        </template>
+        <template #content>
+            <div class="flex flex-col gap-3">
+                <div class="">Top Up Amount</div>
+                <Deferred data="topUpOptions">
+                    <template #fallback>Loading</template>
+                    <div class="grid grid-cols-3 gap-3">
+                        <Button
+                            class="w-full p-4 text-center text-black bg-white rounded-lg"
+                            :class="
+                                selectedTopUpOption == topUpOption
+                                    ? 'bg-primary'
+                                    : ''
+                            "
+                            v-for="topUpOption in topUpOptions"
+                            @click="() => onTopUpOptionSelected(topUpOption)"
+                        >
+                            {{ formatCurrency(topUpOption, 0) }}
+                        </Button>
+                    </div>
+                </Deferred>
+                <Divider />
+                <div class="">Payment Method</div>
+                <Deferred data="paymentMethods">
+                    <template #fallback>Loading</template>
+                    <div class="flex flex-col gap-3">
+                        <Button
+                            class="flex justify-between p-4 text-black bg-white rounded-lg"
+                            v-for="(
+                                paymentMethod, index
+                            ) in paymentMethodDetails"
+                            :disabled="paymentMethod.calculation.disabled"
+                            @click="() => onPaymentClicked(paymentMethod)"
+                        >
+                            <div
+                                class="flex items-center justify-between w-full"
                             >
-                                {{ formatCurrency(topUpOption, 0) }}
-                            </Button>
-                        </div>
-                    </Deferred>
-                    <Divider />
-                    <div class="">Payment Method</div>
-                    <Deferred data="paymentMethods">
-                        <template #fallback>Loading</template>
-                        <div class="flex flex-col gap-3">
-                            <Button
-                                class="flex justify-between p-4 text-black bg-white rounded-lg"
-                                v-for="(
-                                    paymentMethod, index
-                                ) in paymentMethodDetails"
-                                :disabled="paymentMethod.calculation.disabled"
-                                @click="() => onPaymentClicked(paymentMethod)"
-                            >
-                                <div
-                                    class="flex items-center justify-between w-full"
-                                >
-                                    <Image
-                                        :src="paymentMethod.icon_url"
-                                        class="flex h-10 max-w-full max-h-full"
-                                    />
-                                    <span class="">
-                                        {{
-                                            formatCurrency(
-                                                paymentMethod.calculation.price
-                                            )
-                                        }}
-                                    </span>
-                                </div>
-                            </Button>
-                        </div>
-                    </Deferred>
-                </div>
-            </template>
-        </Card>
-    </Default>
+                                <Image
+                                    :src="paymentMethod.icon_url"
+                                    class="flex h-10 max-w-full max-h-full"
+                                />
+                                <span class="">
+                                    {{
+                                        formatCurrency(
+                                            paymentMethod.calculation.price
+                                        )
+                                    }}
+                                </span>
+                            </div>
+                        </Button>
+                    </div>
+                </Deferred>
+            </div>
+        </template>
+    </Card>
 </template>

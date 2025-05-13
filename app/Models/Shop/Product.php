@@ -15,11 +15,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Tapp\FilamentCountryCodeField\Concerns\HasCountryCodeData;
 
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
     use HasUuids, SoftDeletes;
+    use HasCountryCodeData;
 
     protected $fillable = [
         'name',
@@ -28,10 +30,16 @@ class Product extends Model
         'active',
         'price',
         'code',
+        'thumbnail_type',
+        'thumbnail',
     ];
 
     protected $casts = [
         'type' => ProductType::class
+    ];
+
+    protected $appends = [
+        'thumbnail_url',
     ];
 
     public function attachAccount(Collection|Account $accounts){
@@ -39,6 +47,14 @@ class Product extends Model
             $accounts = collect([$accounts]);
         $this->accounts()->attach($accounts);
     }
+
+    // attributes
+    public function getThumbnailUrlAttribute(){
+        return !$this->thumbnail ? null : ($this->thumbnail_type == 'image' ? $this->thumbnail : '/svg/'.$this->getIsoCodeByCountryCode($this->thumbnail).'.svg');
+    }
+
+
+    // relations
 
     public function bot(){
         return $this->hasOne(Bot::class);

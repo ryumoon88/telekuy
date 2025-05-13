@@ -34,6 +34,6 @@ class Bot extends Model
     }
 
     public function licenses(){
-        return $this->hasMany(BotLicense::class);
+        return $this->hasManyThrough(BotLicense::class, BotOption::class);
     }
 }

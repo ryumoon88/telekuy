@@ -34,88 +34,77 @@ const submit = () => {
 </script>
 
 <template>
-    <Default>
-        <Head title="Reset Password" />
+    <Head title="Reset Password" />
 
-        <Card class="w-full max-w-lg m-auto">
-            <template #content>
-                <form @submit.prevent="submit">
-                    <div>
-                        <InputLabel for="email" value="Email" />
+    <Card class="w-full max-w-lg m-auto">
+        <template #content>
+            <form @submit.prevent="submit">
+                <div>
+                    <InputLabel for="email" value="Email" />
 
-                        <InputText
-                            id="email"
-                            type="email"
-                            class="block w-full mt-1"
-                            v-model="form.email"
-                            required
-                            autofocus
-                            autocomplete="username"
-                        />
+                    <InputText
+                        id="email"
+                        type="email"
+                        class="block w-full mt-1"
+                        v-model="form.email"
+                        required
+                        autofocus
+                        autocomplete="username"
+                    />
 
-                        <Message 
-                            variant="simple"
-                            severity="error"
-                        >
-                            {{ form.errors.email }}
-                        </Message>
-                    </div>
+                    <Message variant="simple" severity="error">
+                        {{ form.errors.email }}
+                    </Message>
+                </div>
 
-                    <div class="mt-4">
-                        <InputLabel for="password" value="Password" />
+                <div class="mt-4">
+                    <InputLabel for="password" value="Password" />
 
-                        <InputText
-                            id="password"
-                            type="password"
-                            class="block w-full mt-1"
-                            v-model="form.password"
-                            required
-                            autocomplete="new-password"
-                        />
+                    <InputText
+                        id="password"
+                        type="password"
+                        class="block w-full mt-1"
+                        v-model="form.password"
+                        required
+                        autocomplete="new-password"
+                    />
 
-                        <Message 
-                            variant="simple"
-                            severity="error"
-                        >
-                            {{ form.errors.password }}
-                        </Message>
-                    </div>
+                    <Message variant="simple" severity="error">
+                        {{ form.errors.password }}
+                    </Message>
+                </div>
 
-                    <div class="mt-4">
-                        <InputLabel
-                            for="password_confirmation"
-                            value="Confirm Password"
-                        />
+                <div class="mt-4">
+                    <InputLabel
+                        for="password_confirmation"
+                        value="Confirm Password"
+                    />
 
-                        <InputText
-                            id="password_confirmation"
-                            type="password"
-                            class="block w-full mt-1"
-                            v-model="form.password_confirmation"
-                            required
-                            autocomplete="new-password"
-                        />
+                    <InputText
+                        id="password_confirmation"
+                        type="password"
+                        class="block w-full mt-1"
+                        v-model="form.password_confirmation"
+                        required
+                        autocomplete="new-password"
+                    />
 
-                        <Message 
-                            variant="simple"
-                            severity="error"
-                        >
-                            {{ form.errors.password_confirmation }}
-                        </Message>
-                    </div>
+                    <Message variant="simple" severity="error">
+                        {{ form.errors.password_confirmation }}
+                    </Message>
+                </div>
 
-                    <div class="flex items-center justify-end mt-4">
-                        <Button
-                            :class="{ 'opacity-25': form.processing }"
-                            :disabled="form.processing"
-                            type="submit"
-                            size="small"
-                        >
-                            Reset Password
-                        </Button>
-                    </div>
-                </form>
-            </template>
-        </Card>
-    </Default>
+                <div class="flex items-center justify-end mt-4">
+                    <Button
+                        :class="{ 'opacity-25': form.processing }"
+                        :disabled="form.processing"
+                        type="submit"
+                        size="small"
+                    >
+                        Reset Password
+                    </Button>
+                </div>
+            </form>
+        </template>
+    </Card>
 </template>

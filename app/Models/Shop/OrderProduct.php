@@ -11,10 +11,14 @@ class OrderProduct extends Model
         'product_id',
     ];
 
-    protected $appends = ['total'];
+    protected $appends = ['total', 'completed'];
 
     public function getTotalAttribute(){
         return $this->orderProductItems->sum(fn($item) => $item->price * $item->quantity);
+    }
+
+    public function getCompletedAttribute(): bool {
+        return (bool) $this->orderProductItems->every(fn($item) => $item->completed);
     }
 
     public function order(){

@@ -12,20 +12,19 @@ const config = {
 </script>
 
 <template>
-    <Default>
-        <div class="flex flex-col max-w-6xl gap-4">
-            <Carousel v-bind="config">
-                <Slide v-for="slide in 10" :key="slide">
-                    <img src="https://dummyimage.com/1080x720/000/fff" alt="" />
-                </Slide>
+    <div class="flex flex-col max-w-6xl gap-4">
+        <Carousel v-bind="config">
+            <Slide v-for="slide in 10" :key="slide">
+                <img src="https://dummyimage.com/1080x720/000/fff" alt="" />
+            </Slide>
 
-                <template #addons>
-                    <Navigation />
-                    <Pagination />
-                </template>
-            </Carousel>
-            <ProductList />
-            <!-- <Card title="Referral">
+            <template #addons>
+                <Navigation />
+                <Pagination />
+            </template>
+        </Carousel>
+        <ProductList />
+        <!-- <Card title="Referral">
                 <div class="flex gap-4 overflow-hidden flex-nowrap">
                     <a
                         :href="route('product', {product: item.id})"
@@ -86,6 +85,5 @@ const config = {
                     </div>
                 </div>
             </Card> -->
-        </div>
-    </Default>
+    </div>
 </template>

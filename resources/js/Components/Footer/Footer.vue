@@ -5,7 +5,7 @@ import NavLink from "@/Components/NavLink.vue";
 <template>
     <!-- <footer class="fixed bottom-0 left-0 z-20 w-full bg-[#0E275E] shadow md:flex md:items-center md:justify-between dark:bg-gray-800 dark:border-gray-600"> -->
     <footer
-        class="left-0 z-20 w-full bg-[#0E275E] shadow md:flex md:items-center md:justify-between dark:bg-gray-800 dark:border-gray-600"
+        class="left-0 z-20 w-full bg-[#0E275E] shadow md:flex md:items-center md:justify-between "
     >
         <div class="w-full p-4 py-6 mx-auto max-w-7xl lg:py-6">
             <div class="md:flex md:justify-between">

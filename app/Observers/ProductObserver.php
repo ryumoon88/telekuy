@@ -30,6 +30,14 @@ class ProductObserver
     }
 
     /**
+     * Handle the Product "updating" event.
+     */
+    public function saving(Product $product): void
+    {
+        //
+    }
+
+    /**
      * Handle the Product "updated" event.
      */
     public function updated(Product $product): void

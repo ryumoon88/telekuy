@@ -49,7 +49,7 @@ class TopUpController extends Controller
             'amount' => $amount,
             'customer_name' => $user->name,
             'customer_email' => $user->email,
-            'customer_phone' => '0',
+            'customer_phone' => '0852123456789',
             'order_items' => [
                 [
                     'sku' => 'TOPUP-'.$amount,
@@ -69,7 +69,7 @@ class TopUpController extends Controller
             $transaction->update([
                 'tripay_payload' => json_encode($response['data'])
             ]);
-            
+
             return response()->json([
                 'checkout_url' => $response['data']['checkout_url'],
             ]);

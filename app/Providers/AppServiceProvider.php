@@ -52,6 +52,16 @@ class AppServiceProvider extends ServiceProvider
             PanelsRenderHook::USER_MENU_BEFORE,
             fn (): string => Blade::render('@livewire(\'user-balance\')')
         );
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn (): string => Blade::render('@livewire(\'chat-notifications\')'),
+
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::PAGE_END,
+            fn():string => Blade::render('@livewire(\'chats-container\')')
+        );
 
         Gate::guessPolicyNamesUsing(function (string $modelClass) {
             // Check if the model class is under the 'Telegram' namespace

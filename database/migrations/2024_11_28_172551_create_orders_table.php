@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\OrderPaymentStatus;
+use App\Enums\OrderStatus;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderProduct;
 use App\Models\Shop\Product;
@@ -19,26 +21,28 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('reference')->unique();
             $table->foreignIdFor(User::class, 'buyer_id')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'canceled', 'completed'])->default('pending');
+            $table->enum('status', array_column(OrderStatus::cases(), 'value'))->default('pending');
+            $table->enum('payment_status', array_column(OrderPaymentStatus::cases(), 'value'))->default('unpaid');
             $table->json('extra')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
 
-        Schema::create('order_products', function(Blueprint $table) {
+        Schema::create('order_products', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Order::class);
             $table->foreignIdFor(Product::class);
             $table->timestamps();
         });
 
-        Schema::create('order_product_items', function(Blueprint $table) {
+        Schema::create('order_product_items', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(OrderProduct::class);
             $table->nullableUuidMorphs('orderable');
             $table->boolean('completed')->default(false);
             $table->integer('quantity');
             $table->integer('price');
+            $table->foreignIdFor(User::class, 'handler_id')->nullable();
             $table->json('extra')->nullable();
             $table->timestamps();
         });

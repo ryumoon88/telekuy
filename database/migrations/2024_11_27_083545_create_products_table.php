@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('type', array_column(ProductType::cases(), 'value'));
             $table->boolean('active')->default(true);
             $table->integer('price')->nullable();
+            $table->string('thumbnail')->nullable();
+            $table->enum('thumbnail_type', ['country', 'image'])->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

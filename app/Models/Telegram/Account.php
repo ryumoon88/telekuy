@@ -16,6 +16,7 @@ use App\Models\User;
 use Cknow\Money\Casts\MoneyIntegerCast;
 use Cknow\Money\Money;
 use Exception;
+use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -45,8 +46,7 @@ class Account extends Model
         'status' => AccountStatus::class,
     ];
 
-    protected $appends = ['priceDisplay', 'isoCode'];
-
+    protected $appends = ['price_display', 'iso_code'];
 
     public static function ImportAccounts($data): bool{
         $selling_price = $data['selling_price'];
@@ -101,7 +101,7 @@ class Account extends Model
 
         // Prevent zip creation if no valid folders exist
         if ($validFolders->isEmpty()) {
-            return response()->json(['message' => 'No valid account folders available in storage.'], 404);
+            return response()->json(['message' => 'No valid account available to download.'], 404);
         }
 
         // Create zip file and return download response
@@ -123,6 +123,10 @@ class Account extends Model
 
     public function getIsoCodeAttribute(){
         return $this->getIsoCodeByCountryCode($this->country_code);
+    }
+
+    public function getFlagAttribute(){
+        return FilamentIcon::resolve('flags::id');
     }
 
 

@@ -24,50 +24,48 @@ const verificationLinkSent = computed(
 </script>
 
 <template>
-    <Default>
-        <Head title="Email Verification" />
+    <Head title="Email Verification" />
 
-        <Card class="max-w-xl m-auto">
-            <template #content>
-                <div class="mb-4 text-sm">
-                    Thanks for signing up! Before getting started, could you
-                    verify your email address by clicking on the link we just
-                    emailed to you? If you didn't receive the email, we will
-                    gladly send you another.
+    <Card class="max-w-xl m-auto">
+        <template #content>
+            <div class="mb-4 text-sm">
+                Thanks for signing up! Before getting started, could you verify
+                your email address by clicking on the link we just emailed to
+                you? If you didn't receive the email, we will gladly send you
+                another.
+            </div>
+
+            <Message
+                variant="simple"
+                severity="success"
+                v-if="verificationLinkSent"
+            >
+                A new verification link has been sent to the email address you
+                provided during registration.
+            </Message>
+
+            <form @submit.prevent="submit">
+                <div class="flex items-center justify-between mt-4">
+                    <Button
+                        severity="secondary"
+                        size="small"
+                        :class="{ 'opacity-25': form.processing }"
+                        :disabled="form.processing"
+                        type="submit"
+                    >
+                        Resend Verification Email
+                    </Button>
+
+                    <Button
+                        variant="link"
+                        :href="route('logout')"
+                        method="post"
+                        :as="Link"
+                    >
+                        Log Out
+                    </Button>
                 </div>
-
-                <Message
-                    variant="simple"
-                    severity="success"
-                    v-if="verificationLinkSent"
-                >
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </Message>
-
-                <form @submit.prevent="submit">
-                    <div class="flex items-center justify-between mt-4">
-                        <Button
-                            severity="secondary"
-                            size="small"
-                            :class="{ 'opacity-25': form.processing }"
-                            :disabled="form.processing"
-                            type="submit"
-                        >
-                            Resend Verification Email
-                        </Button>
-
-                        <Button
-                            variant="link"
-                            :href="route('logout')"
-                            method="post"
-                            :as="Link"
-                        >
-                            Log Out
-                        </Button>
-                    </div>
-                </form>
-            </template>
-        </Card>
-    </Default>
+            </form>
+        </template>
+    </Card>
 </template>
